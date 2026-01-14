@@ -1,0 +1,17 @@
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+line-mini-app-sandbox
+
+.env
+.env.*
+!.env.example
+
+# Database (Docker)
+postgres_data/
+
+.DS_Store
+Thumbs.db

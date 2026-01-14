@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>商品管理ミニツール</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; background: #f4f7f6; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .input-group { margin-bottom: 20px; }
+        input { padding: 8px; margin-right: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 8px 16px; background: #00b900; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #009900; }
+        ul { list-style: none; padding: 0; }
+        li { background: #eee; margin: 5px 0; padding: 10px; border-radius: 4px; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 商品管理</h1>
+        
+        <div class="input-group">
+            <input type="text" id="name" placeholder="商品名">
+            <input type="number" id="price" placeholder="価格">
+            <button onclick="addProduct()">追加</button>
+        </div>
+
+        <ul id="productList"></ul>
+    </div>
+
+    <script>
+        async function loadProducts() {
+            const response = await fetch('/products');
+            const products = await response.json();
+            const list = document.getElementById('productList');
+            list.innerHTML = '';
+
+            products.forEach(p => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                  <div class="product-info">
+                    <div style="font-weight: bold; color: #333;">${p.name}</div>
+                    <div style="font-size: 0.9em; color: #666;">¥${p.price.toLocaleString()}</div>
+                  </div>
+                  <button onclick="deleteProduct(${p.id})" style="color: red; cursor: pointer; border: 1px solid red; background: white; border-radius: 4px; padding: 5px 10px;">削除</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        async function addProduct() {
+            const name = document.getElementById('name').value;
+            const price = parseInt(document.getElementById('price').value);
+
+            await fetch('/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, price })
+            });
+
+            document.getElementById('name').value = '';
+            document.getElementById('price').value = '';
+            loadProducts();
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm('本当に削除しますか？')) return;
+
+            const response = await fetch(`/products/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                loadProducts();
+            } else {
+                alert('削除に失敗しました');
+            }
+        }
+
+        loadProducts();
+    </script>
+</body>
+</html>
