@@ -65,7 +65,6 @@
 
         async function loadProducts() {
             if (!userLineId) return;
-            const userId = liff.getContext().userId;
 
             const response = await fetch(`/products?userId=${userLineId}`);
             const products = await response.json();
@@ -87,7 +86,7 @@
 
         async function addProduct() {
             const name = document.getElementById('name').value;
-            const priceStr = document.getElementById('price').value);
+            const priceStr = document.getElementById('price').value;
             const price = parseInt(priceStr);
 
             if (!name || !priceStr || !userLineId) {
