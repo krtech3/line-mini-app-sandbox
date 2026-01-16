@@ -190,60 +190,62 @@
         }
 
         async function sendListToChat() {
-          const listItems = document.querySelectorAll('#productList li');
+            const listItems = document.querySelectorAll('#productList li');
 
-          if (listItems.length === 0) {
-            alert('商品リストが空です。');
-            return;
-          }
-
-          let messageText = "📋 買い物リスト:\n";
-          let totalPrice = 0;
-
-          listItems.forEach(item => {
-            const name = item.querySelector('.product-info div:first-child').innerText;
-            const priceText = item.querySelector('.product-info div:last-child').innerText;
-            const priceNum = parseInt(priceText.replace(/[^0-9]/g, ''));
-            totalPrice += priceNum;
-
-            itemContents.push({
-              "type": "box",
-              "layout": "horizontal",
-              "contents": [
-                  { "type": "text", "text": name, "size": "sm", "color": "#555555", "flex": 4 },
-                  { "type": "text", "text": `¥${priceNum.toLocaleString()}`, "size": "sm", "color": "#111111", "align": "end", "flex": 2 }
-              ]
-            });
-          });
-
-          const flexMessage = {
-            "type": "flex",
-            "altText": "買い物リストが届きました",
-            "contents": {
-                "type": "bubble",
-                "header": {
-                    "type": "box",
-                    "layout": "vertical",
-                    "contents": [{ "type": "text", "text": "RECEIPT", "weight": "bold", "color": "#1DB446", "size": "sm" }]
-                },
-                "body": {
-                    "type": "box",
-                    "layout": "vertical",
-                    "contents": [
-                        { "type": "text", "text": "買い物リスト", "weight": "bold", "size": "xl" },
-                        { "type": "separator", "margin": "md" },
-                        { "type": "box", "layout": "vertical", "margin": "md", "spacing": "sm", "contents": itemContents },
-                        { "type": "separator", "margin": "md" },
-                        { "type": "box", "layout": "horizontal", "margin": "md", "contents": [
-                            { "type": "text", "text": "合計", "size": "md", "color": "#555555", "weight": "bold" },
-                            { "type": "text", "text": `¥${totalPrice.toLocaleString()}`, "size": "lg", "align": "end", "weight": "bold", "color": "#ff0000" }
-                        ]}
-                    ]
-                }
+            if (listItems.length === 0) {
+                alert('商品リストが空です。');
+                return;
             }
-          };
 
-          try {
+            // ★ ここで itemContents を空の配列として正しく準備します
+            let itemContents = [];
+            let totalPrice = 0;
+
+            listItems.forEach(item => {
+                const name = item.querySelector('.product-info div:first-child').innerText;
+                const priceText = item.querySelector('.product-info div:last-child').innerText;
+                const priceNum = parseInt(priceText.replace(/[^0-9]/g, ''));
+                totalPrice += priceNum;
+
+                // 配列にデザインパーツを追加
+                itemContents.push({
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [
+                        { "type": "text", "text": name, "size": "sm", "color": "#555555", "flex": 4 },
+                        { "type": "text", "text": `¥${priceNum.toLocaleString()}`, "size": "sm", "color": "#111111", "align": "end", "flex": 2 }
+                    ]
+                });
+            });
+
+            const flexMessage = {
+                "type": "flex",
+                "altText": "買い物リストが届きました",
+                "contents": {
+                    "type": "bubble",
+                    "header": {
+                        "type": "box",
+                        "layout": "vertical",
+                        "contents": [{ "type": "text", "text": "RECEIPT", "weight": "bold", "color": "#1DB446", "size": "sm" }]
+                    },
+                    "body": {
+                        "type": "box",
+                        "layout": "vertical",
+                        "contents": [
+                            { "type": "text", "text": "買い物リスト", "weight": "bold", "size": "xl" },
+                            { "type": "separator", "margin": "md" },
+                            { "type": "box", "layout": "vertical", "margin": "md", "spacing": "sm", "contents": itemContents },
+                            { "type": "separator", "margin": "md" },
+                            { "type": "box", "layout": "horizontal", "margin": "md", "contents": [
+                                { "type": "text", "text": "合計", "size": "md", "color": "#555555", "weight": "bold" },
+                                { "type": "text", "text": `¥${totalPrice.toLocaleString()}`, "size": "lg", "align": "end", "weight": "bold", "color": "#ff0000" }
+                            ]}
+                        ]
+                    }
+                }
+            };
+
+            try {
                 if (liff.isInClient()) {
                     await liff.sendMessages([flexMessage]);
                     liff.closeWindow();
@@ -254,7 +256,7 @@
                 console.error(err);
                 alert("送信に失敗しました");
             }
-          }
+        }
 
         initializeApp();
     </script>
