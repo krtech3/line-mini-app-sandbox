@@ -14,9 +14,10 @@ import (
 
 type Product struct {
 	gorm.Model
-	ID    uint   `gorm:"primaryKey" json:"id"`
-	Name  string `json:"name"`
-	Price uint   `json:"price"`
+	ID     uint   `gorm:"primaryKey" json:"id"`
+	Name   string `json:"name"`
+	Price  uint   `json:"price"`
+	UserID string `json:"userId"`
 }
 
 func main() {
@@ -27,7 +28,7 @@ func main() {
 
 	// --- ポート番号の取得(Render) ---
 	appPort := os.Getenv("PORT")
-	if appPort != "" {
+	if appPort == "" {
 		appPort = "8000"
 	}
 
@@ -55,14 +56,14 @@ func main() {
 	r.StaticFS("/static", http.Dir("static"))
 
 	r.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "LINE Mini App Sandbox API is running!",
-		})
-	})
-
-	r.GET("/products", func(c *gin.Context) {
+		userID := c.Query("userId")
 		var products []Product
-		db.Find(&products)
+
+		if userID != "" {
+			db.Where("user_id = ?", userID).Find(&products)
+		} else {
+			products = []Product{}
+		}
 		c.JSON(http.StatusOK, products)
 	})
 
