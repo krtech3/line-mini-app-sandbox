@@ -14,11 +14,14 @@
         ul { list-style: none; padding: 0; }
         li { background: #eee; margin: 5px 0; padding: 10px; border-radius: 4px; display: flex; justify-content: space-between; }
     </style>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>📦 商品管理</h1>
         
+        <div id="user-info">読み込み中...</div>
+
         <div class="input-group">
             <input type="text" id="name" placeholder="商品名">
             <input type="number" id="price" placeholder="価格">
@@ -29,6 +32,28 @@
     </div>
 
     <script>
+      const MY_LIFF_ID = '2008909034-mEEj51NQ';
+
+      async function initializeApp() {
+        try {
+          await liff.init({ liffId: MY_LIFF_ID });
+
+          if (!liff.isLoggedIn()) {
+            liff.login();
+            return;
+          }
+
+          const profile = await liff.getProfile();
+          document.getElementById('user-info').innerText = `こんにちは、${profile.displayName} さん！`;
+
+          loadProducts();
+
+        } catch (err) {
+          console.error('LIFF初期化エラー:', err);
+          document.getElementById('user-info').innerText = 'ログインに失敗しました。';
+        }
+      }
+
         async function loadProducts() {
             const response = await fetch('/products');
             const products = await response.json();
@@ -77,7 +102,7 @@
             }
         }
 
-        loadProducts();
+        initializeApp();
     </script>
 </body>
 </html>
