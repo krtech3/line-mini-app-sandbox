@@ -1,6 +1,6 @@
 module github.com/krtech3/line-mini-app-sandbox
 
-go 1.25.5
+go 1.24
 
 require (
 	gorm.io/driver/postgres v1.6.0
