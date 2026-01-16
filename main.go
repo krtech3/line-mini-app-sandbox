@@ -25,15 +25,22 @@ func main() {
 		log.Println(".env file not found. Using system environment variables.")
 	}
 
-	host := os.Getenv("DB_HOST")
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-	dbname := os.Getenv("DB_NAME")
-	port := os.Getenv("DB_PORT")
+	// --- ポート番号の取得(Render) ---
+	appPort := os.Getenv("PORT")
+	if appPort != "" {
+		appPort = "8000"
+	}
 
-	// --- 接続文字列(DSN)を組み立て ---
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		host, user, password, dbname, port)
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		host := os.Getenv("DB_HOST")
+		user := os.Getenv("DB_USER")
+		password := os.Getenv("DB_PASSWORD")
+		dbname := os.Getenv("DB_NAME")
+		dbPort := os.Getenv("DB_PORT")
+		dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+			host, user, password, dbname, dbPort)
+	}
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -89,6 +96,6 @@ func main() {
 	})
 
 	// --- サーバー起動 (ポート8000で待ち受け) ---
-	fmt.Println("🚀 サーバーをポート8000で起動します...")
-	r.Run(":8000")
+	fmt.Printf("🚀 サーバーをポート %s で起動します...\n", appPort)
+	r.Run(":" + appPort)
 }
