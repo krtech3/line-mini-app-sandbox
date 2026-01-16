@@ -17,7 +17,7 @@ type Product struct {
 	ID     uint   `gorm:"primaryKey" json:"id"`
 	Name   string `json:"name"`
 	Price  uint   `json:"price"`
-	UserID string `json:"userId"`
+	UserID string `gorm:"column:user_id" json:"userId"`
 }
 
 func main() {
@@ -55,9 +55,11 @@ func main() {
 
 	r.StaticFS("/static", http.Dir("static"))
 
-	r.GET("/", func(c *gin.Context) {
+	r.GET("/products", func(c *gin.Context) {
 		userID := c.Query("userId")
 		var products []Product
+
+		fmt.Println("Searching for userID:", userID)
 
 		if userID != "" {
 			db.Where("user_id = ?", userID).Find(&products)
