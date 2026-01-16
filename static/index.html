@@ -62,7 +62,9 @@
       }
 
         async function loadProducts() {
-            const response = await fetch('/products');
+            const userId = liff.getContext().userId;
+
+            const response = await fetch(`/products?userId=${userId}`);
             const products = await response.json();
             const list = document.getElementById('productList');
             list.innerHTML = '';
@@ -83,11 +85,12 @@
         async function addProduct() {
             const name = document.getElementById('name').value;
             const price = parseInt(document.getElementById('price').value);
+            const userId = liff.getContext().userId;
 
             await fetch('/products', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, price })
+                body: JSON.stringify({ name, price, userId })
             });
 
             document.getElementById('name').value = '';
