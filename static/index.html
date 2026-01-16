@@ -33,6 +33,7 @@
             <input type="text" id="name" placeholder="商品名">
             <input type="number" id="price" placeholder="価格">
             <button onclick="addProduct()">追加</button>
+            <button onclick="sendListToChat()" style="background: #007bff; margin-top: 10px; width: 100%;">LINEにリストを送信</button>
         </div>
 
         <ul id="productList"></ul>
@@ -117,6 +118,42 @@
             } else {
                 alert('削除に失敗しました');
             }
+        }
+
+        async function sendListToChat() {
+          const listItems = document.querySelectorAll('#productList li');
+
+          if (listItems.length === 0) {
+            alert('商品リストが空です。');
+            return;
+          }
+
+          let messageText = "📋 買い物リスト:\n";
+          let totalPrice = 0;
+
+          listItems.forEach(item => {
+            const name = item.querySelector('.product-info div:first-child').innerText;
+            const priceText = item.querySelector('.product-info div:last-child').innerText;
+            messageText += `・${name} (${priceText})\n`;
+            totalPrice += parseInt(priceText.replace(/[^0-9]/g, ''));
+          });
+          
+          messageText += `\n合計: ¥${totalPrice.toLocaleString()}`;
+          
+          try {
+            if (liff.isInClient()) {
+              await liff.sendMessages([{
+                type: 'text',
+                text: messageText
+              }]);
+              alert('トークに送信しました！');
+            } else {
+              alert("LINEアプリ内で利用してください\n\n送信内容：\n" + messageText);
+            }
+          } catch (err) {
+            console.error('送信エラー：', err);
+            alert("送信に失敗しました。権限設定を確認してください。");
+          }
         }
 
         initializeApp();
