@@ -39,6 +39,7 @@
     </div>
 
     <script>
+      let userLineId = "";
       const MY_LIFF_ID = '2008909034-mEEj51NQ';
 
       async function initializeApp() {
@@ -51,6 +52,7 @@
           }
 
           const profile = await liff.getProfile();
+          userLineId = profile.userId;
           document.getElementById('user-info').innerText = `こんにちは、${profile.displayName} さん！`;
 
           loadProducts();
@@ -62,9 +64,10 @@
       }
 
         async function loadProducts() {
+            if (!userLineId) return;
             const userId = liff.getContext().userId;
 
-            const response = await fetch(`/products?userId=${userId}`);
+            const response = await fetch(`/products?userId=${userLineId}`);
             const products = await response.json();
             const list = document.getElementById('productList');
             list.innerHTML = '';
@@ -84,13 +87,18 @@
 
         async function addProduct() {
             const name = document.getElementById('name').value;
-            const price = parseInt(document.getElementById('price').value);
-            const userId = liff.getContext().userId;
+            const priceStr = document.getElementById('price').value);
+            const price = parseInt(priceStr);
+
+            if (!name || !priceStr || !userLineId) {
+                alert("入力が足りないか、ログイン情報が取得できていません");
+                return;
+            }
 
             await fetch('/products', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, price, userId })
+                body: JSON.stringify({ name, price, userId: userLineId })
             });
 
             document.getElementById('name').value = '';
