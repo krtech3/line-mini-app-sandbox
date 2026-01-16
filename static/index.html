@@ -2,24 +2,97 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>商品管理ミニツール</title>
     <style>
-        body { font-family: sans-serif; margin: 40px; background: #f4f7f6; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
+        * { box-sizing: border-box; }
 
-        #user-info { 
-        margin-bottom: 20px; 
-        font-weight: bold; 
-        color: #555; 
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          margin: 0px;
+          padding: 15px;
+          background: #f0f2f5;
+          color: #333;
         }
 
-        .input-group { margin-bottom: 20px; }
-        input { padding: 8px; margin-right: 10px; border: 1px solid #ddd; border-radius: 4px; }
-        button { padding: 8px 16px; background: #00b900; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #009900; }
+        .container {
+          max-width: 600px;
+          margin: auto;
+          background: white;
+          padding: 20px;
+          border-radius: 12px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        h1 { font-size:1.5rem; margin-top: 0; text-align: center; color: #1DB446; }
+
+        #user-info { 
+          margin-bottom: 20px; 
+          font-weight: 0.9rem;
+          background: #e7f3ff;
+          padding: 12px;
+          border-radius: 8px;
+          text-align: center;
+          font-weight: bold;
+        }
+
+        .input-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+            margin-bottom: 25px; 
+        }
+
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            font-size: 16px; 
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-add { background: #1DB446; color: white; }
+        .btn-send { background: #007bff; color: white; margin-top: 5px; }
+        .btn:active { opacity: 0.7; }
+
         ul { list-style: none; padding: 0; }
-        li { background: #eee; margin: 5px 0; padding: 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        li { 
+            background: #fff; 
+            margin-bottom: 10px; 
+            padding: 15px; 
+            border-radius: 10px; 
+            border: 1px solid #eee;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+
+        .product-info div:first-child { font-weight: bold; font-size: 1.1rem; }
+        .product-info div:last-child { color: #888; margin-top: 4px; }
+
+        .btn-delete {
+            background: #ff4d4f;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        @media (min-width: 400px) {
+            body { padding: 40px 20px; }
+        }
     </style>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
@@ -30,10 +103,10 @@
         <div id="user-info">読み込み中...</div>
 
         <div class="input-group">
-            <input type="text" id="name" placeholder="商品名">
-            <input type="number" id="price" placeholder="価格">
-            <button onclick="addProduct()">追加</button>
-            <button onclick="sendListToChat()" style="background: #007bff; margin-top: 10px; width: 100%;">LINEにリストを送信</button>
+            <input type="text" id="name" placeholder="商品名（例：チョコ）">
+            <input type="number" id="price" placeholder="価格（例：100）">
+            <button class="btn btn-add" onclick="addProduct()">＋ リストに追加</button>
+            <button class="btn btn-send" onclick="sendListToChat()">✉ LINEにレシートを送信</button>
         </div>
 
         <ul id="productList"></ul>
@@ -76,10 +149,10 @@
                 const li = document.createElement('li');
                 li.innerHTML = `
                   <div class="product-info">
-                    <div style="font-weight: bold; color: #333;">${p.name}</div>
-                    <div style="font-size: 0.9em; color: #666;">¥${p.price.toLocaleString()}</div>
+                    <div>${p.name}</div>
+                    <div>¥${p.price.toLocaleString()}</div>
                   </div>
-                  <button onclick="deleteProduct(${p.id})" style="color: red; cursor: pointer; border: 1px solid red; background: white; border-radius: 4px; padding: 5px 10px;">削除</button>
+                  <button class="btn-delete" onclick="deleteProduct(${p.id})">削除</button>
                 `;
                 list.appendChild(li);
             });
@@ -91,7 +164,7 @@
             const price = parseInt(priceStr);
 
             if (!name || !priceStr || !userLineId) {
-                alert("入力が足りないか、ログイン情報が取得できていません");
+                alert("入力を確認してください");
                 return;
             }
 
@@ -108,15 +181,11 @@
 
         async function deleteProduct(id) {
             if (!confirm('本当に削除しますか？')) return;
-
-            const response = await fetch(`/products/${id}`, {
-                method: 'DELETE',
-            });
-
+            const response = await fetch(`/products/${id}`, { method: 'DELETE' });
             if (response.ok) {
                 loadProducts();
             } else {
-                alert('削除に失敗しました');
+                alert('削除に失敗しました。サーバーの状態を確認してください。');
             }
         }
 
@@ -134,27 +203,58 @@
           listItems.forEach(item => {
             const name = item.querySelector('.product-info div:first-child').innerText;
             const priceText = item.querySelector('.product-info div:last-child').innerText;
-            messageText += `・${name} (${priceText})\n`;
-            totalPrice += parseInt(priceText.replace(/[^0-9]/g, ''));
+            const priceNum = parseInt(priceText.replace(/[^0-9]/g, ''));
+            totalPrice += priceNum;
+
+            itemContents.push({
+              "type": "box",
+              "layout": "horizontal",
+              "contents": [
+                  { "type": "text", "text": name, "size": "sm", "color": "#555555", "flex": 4 },
+                  { "type": "text", "text": `¥${priceNum.toLocaleString()}`, "size": "sm", "color": "#111111", "align": "end", "flex": 2 }
+              ]
+            });
           });
-          
-          messageText += `\n合計: ¥${totalPrice.toLocaleString()}`;
-          
-          try {
-            if (liff.isInClient()) {
-              await liff.sendMessages([{
-                type: 'text',
-                text: messageText
-              }]);
-              alert('トークに送信しました！');
-            } else {
-              alert("LINEアプリ内で利用してください\n\n送信内容：\n" + messageText);
+
+          const flexMessage = {
+            "type": "flex",
+            "altText": "買い物リストが届きました",
+            "contents": {
+                "type": "bubble",
+                "header": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "contents": [{ "type": "text", "text": "RECEIPT", "weight": "bold", "color": "#1DB446", "size": "sm" }]
+                },
+                "body": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "contents": [
+                        { "type": "text", "text": "買い物リスト", "weight": "bold", "size": "xl" },
+                        { "type": "separator", "margin": "md" },
+                        { "type": "box", "layout": "vertical", "margin": "md", "spacing": "sm", "contents": itemContents },
+                        { "type": "separator", "margin": "md" },
+                        { "type": "box", "layout": "horizontal", "margin": "md", "contents": [
+                            { "type": "text", "text": "合計", "size": "md", "color": "#555555", "weight": "bold" },
+                            { "type": "text", "text": `¥${totalPrice.toLocaleString()}`, "size": "lg", "align": "end", "weight": "bold", "color": "#ff0000" }
+                        ]}
+                    ]
+                }
             }
-          } catch (err) {
-            console.error('送信エラー：', err);
-            alert("送信に失敗しました。権限設定を確認してください。");
+          };
+
+          try {
+                if (liff.isInClient()) {
+                    await liff.sendMessages([flexMessage]);
+                    liff.closeWindow();
+                } else {
+                    alert("LINEアプリ内で利用してください");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("送信に失敗しました");
+            }
           }
-        }
 
         initializeApp();
     </script>
