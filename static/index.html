@@ -91,7 +91,7 @@
         }
 
         @media (min-width: 400px) {
-            body { padding: 40px 20px; }
+            body { padding: 400px 20px; }
         }
     </style>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -101,14 +101,13 @@
         <h1>📦 商品管理</h1>
         
         <div id="user-info">読み込み中...</div>
-
         <div class="input-group">
             <input type="text" id="name" placeholder="商品名（例：チョコ）">
             <input type="number" id="price" placeholder="価格（例：100）">
             <button class="btn btn-add" onclick="addProduct()">＋ リストに追加</button>
-            <button class="btn btn-send" onclick="sendListToChat()">✉ LINEにレシートを送信</button>
+            <button class="btn btn-send" onclick="sendToCurrentChat()">🧾 自分に送信</button>
+            <button class="btn btn-share" onclick="shareToFriends()">👥 友達に共有</button>
         </div>
-
         <ul id="productList"></ul>
     </div>
 
@@ -119,146 +118,159 @@
       async function initializeApp() {
         try {
           await liff.init({ liffId: MY_LIFF_ID });
-
           if (!liff.isLoggedIn()) {
             liff.login();
             return;
           }
-
           const profile = await liff.getProfile();
           userLineId = profile.userId;
           document.getElementById('user-info').innerText = `こんにちは、${profile.displayName} さん！`;
-
           loadProducts();
-
         } catch (err) {
           console.error('LIFF初期化エラー:', err);
           document.getElementById('user-info').innerText = 'ログインに失敗しました。';
         }
       }
 
-        async function loadProducts() {
-            if (!userLineId) return;
+      async function loadProducts() {
+          if (!userLineId) return;
+          const response = await fetch(`/products?userId=${userLineId}`);
+          const products = await response.json();
+          const list = document.getElementById('productList');
+          list.innerHTML = '';
 
-            const response = await fetch(`/products?userId=${userLineId}`);
-            const products = await response.json();
-            const list = document.getElementById('productList');
-            list.innerHTML = '';
+          products.forEach(p => {
+              const li = document.createElement('li');
+              li.innerHTML = `
+                <div class="product-info">
+                  <div>${p.name}</div>
+                  <div>¥${p.price.toLocaleString()}</div>
+                </div>
+                <button class="btn-delete" onclick="deleteProduct(${p.id})">削除</button>
+              `;
+              list.appendChild(li);
+          });
+      }
 
-            products.forEach(p => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                  <div class="product-info">
-                    <div>${p.name}</div>
-                    <div>¥${p.price.toLocaleString()}</div>
-                  </div>
-                  <button class="btn-delete" onclick="deleteProduct(${p.id})">削除</button>
-                `;
-                list.appendChild(li);
-            });
-        }
+      async function addProduct() {
+          const name = document.getElementById('name').value;
+          const priceStr = document.getElementById('price').value;
+          const price = parseInt(priceStr);
 
-        async function addProduct() {
-            const name = document.getElementById('name').value;
-            const priceStr = document.getElementById('price').value;
-            const price = parseInt(priceStr);
+          if (!name || !priceStr || !userLineId) {
+              alert("入力を確認してください");
+              return;
+          }
 
-            if (!name || !priceStr || !userLineId) {
-                alert("入力を確認してください");
-                return;
-            }
+          await fetch('/products', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name, price, userId: userLineId })
+          });
 
-            await fetch('/products', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, price, userId: userLineId })
-            });
+          document.getElementById('name').value = '';
+          document.getElementById('price').value = '';
+          loadProducts();
+      }
 
-            document.getElementById('name').value = '';
-            document.getElementById('price').value = '';
-            loadProducts();
-        }
+      async function deleteProduct(id) {
+          if (!confirm('本当に削除しますか？')) return;
+          const response = await fetch(`/products/${id}`, { method: 'DELETE' });
+          if (response.ok) {
+              loadProducts();
+          } else {
+              alert('削除に失敗しました。サーバーの状態を確認してください。');
+          }
+      }
 
-        async function deleteProduct(id) {
-            if (!confirm('本当に削除しますか？')) return;
-            const response = await fetch(`/products/${id}`, { method: 'DELETE' });
-            if (response.ok) {
-                loadProducts();
-            } else {
-                alert('削除に失敗しました。サーバーの状態を確認してください。');
-            }
-        }
+      function buildFlexMessage(items, total, title) {
+          return {
+              "type": "flex",
+              "altText": title,
+              "contents": {
+                  "type": "bubble",
+                  "header": {
+                      "type": "box", "layout": "vertical",
+                      "contents": [{ "type": "text", "text": "SHOPPING LIST", "weight": "bold", "color": "#1DB446", "size": "sm" }]
+                  },
+                  "body": {
+                      "type": "box", "layout": "vertical",
+                      "contents": [
+                          { "type": "text", "text": title, "weight": "bold", "size": "xl" },
+                          { "type": "separator", "margin": "md" },
+                          { "type": "box", "layout": "vertical", "margin": "md", "spacing": "sm", "contents": items },
+                          { "type": "separator", "margin": "md" },
+                          { "type": "box", "layout": "horizontal", "margin": "md", "contents": [
+                              { "type": "text", "text": "合計金額", "weight": "bold" },
+                              { "type": "text", "text": `¥${total.toLocaleString()}`, "align": "end", "weight": "bold", "color": "#ff0000" }
+                          ]}
+                      ]
+                  },
+                  "footer": {
+                      "type": "box", "layout": "vertical",
+                      "contents": [{
+                          "type": "button",
+                          "action": { "type": "uri", "label": "アプリを開く", "uri": "https://liff.line.me/" + MY_LIFF_ID },
+                          "style": "primary", "color": "#1DB446"
+                      }]
+                  }
+              }
+          };
+      }
 
-        async function sendListToChat() {
-            const listItems = document.querySelectorAll('#productList li');
+      function getListData() {
+          const listItems = document.querySelectorAll('#productList li');
+          if (listItems.length === 0) {
+              alert('リストが空です。');
+              return;
+          }
+          let itemContents = [];
+          let total = 0;
+          listItems.forEach(item => {
+              const name = item.querySelector('.product-info div:first-child').innerText;
+              const price = parseInt(item.querySelector('.product-info div:last-child').innerText.replace(/[^0-9]/g, ''));
+              total += price;
+              itemContents.push({
+                  "type": "box",
+                  "layout": "horizontal",
+                  "contents": [
+                      { "type": "text", "text": name, "flex":4, "size": "sm"},
+                      { "type": "text", "text": `¥${priceNum.toLocaleString()}`, "flex": 2, "align": "end", "size": "sm" }
+                  ]
+              });
+          });
+          return { itemContents, total };
+      }
 
-            if (listItems.length === 0) {
-                alert('商品リストが空です。');
-                return;
-            }
+      async function sendToCurrentChat() {
+          if (!liff.isClient()) {
+              alert("LINEアプリ内で開いてください");
+              return;
+          }
+          const data = getListData();
+          if (!data) return;
+          try {
+              await liff.sendMessages([buildFlexMessage(data.itemContents, data.total, "お買い物リスト")]);
+              liff.closeWindow();
+          } catch (err) {
+            alert("送信失敗");
+          }
+      }
 
-            // ★ ここで itemContents を空の配列として正しく準備します
-            let itemContents = [];
-            let totalPrice = 0;
+      async function shareToFriends() {
+          const data = getListData();
+          if (!data) return;
+          try {
+              const res = await liff.shareTargetPicker([buildFlexMessage(data.itemContents, data.total, "共有されたリスト")]);
+              if (res) {
+                alert("共有しました");
+              }
+          } catch (err) {
+              alert("共有機能がオフか、エラーが発生しました");
+          }
+      }
 
-            listItems.forEach(item => {
-                const name = item.querySelector('.product-info div:first-child').innerText;
-                const priceText = item.querySelector('.product-info div:last-child').innerText;
-                const priceNum = parseInt(priceText.replace(/[^0-9]/g, ''));
-                totalPrice += priceNum;
-
-                // 配列にデザインパーツを追加
-                itemContents.push({
-                    "type": "box",
-                    "layout": "horizontal",
-                    "contents": [
-                        { "type": "text", "text": name, "size": "sm", "color": "#555555", "flex": 4 },
-                        { "type": "text", "text": `¥${priceNum.toLocaleString()}`, "size": "sm", "color": "#111111", "align": "end", "flex": 2 }
-                    ]
-                });
-            });
-
-            const flexMessage = {
-                "type": "flex",
-                "altText": "買い物リストが届きました",
-                "contents": {
-                    "type": "bubble",
-                    "header": {
-                        "type": "box",
-                        "layout": "vertical",
-                        "contents": [{ "type": "text", "text": "RECEIPT", "weight": "bold", "color": "#1DB446", "size": "sm" }]
-                    },
-                    "body": {
-                        "type": "box",
-                        "layout": "vertical",
-                        "contents": [
-                            { "type": "text", "text": "買い物リスト", "weight": "bold", "size": "xl" },
-                            { "type": "separator", "margin": "md" },
-                            { "type": "box", "layout": "vertical", "margin": "md", "spacing": "sm", "contents": itemContents },
-                            { "type": "separator", "margin": "md" },
-                            { "type": "box", "layout": "horizontal", "margin": "md", "contents": [
-                                { "type": "text", "text": "合計", "size": "md", "color": "#555555", "weight": "bold" },
-                                { "type": "text", "text": `¥${totalPrice.toLocaleString()}`, "size": "lg", "align": "end", "weight": "bold", "color": "#ff0000" }
-                            ]}
-                        ]
-                    }
-                }
-            };
-
-            try {
-                if (liff.isInClient()) {
-                    await liff.sendMessages([flexMessage]);
-                    liff.closeWindow();
-                } else {
-                    alert("LINEアプリ内で利用してください");
-                }
-            } catch (err) {
-                console.error(err);
-                alert("送信に失敗しました");
-            }
-        }
-
-        initializeApp();
+      initializeApp();
     </script>
 </body>
 </html>
