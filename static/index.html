@@ -119,6 +119,7 @@
         try {
           await liff.init({ liffId: MY_LIFF_ID });
           if (!liff.isLoggedIn()) {
+            console.log("Not logged in, Redirection to login...");
             liff.login();
             return;
           }
@@ -128,7 +129,7 @@
           loadProducts();
         } catch (err) {
           console.error('LIFF初期化エラー:', err);
-          document.getElementById('user-info').innerText = 'ログインに失敗しました。';
+          document.getElementById('user-info').innerText = 'ログインに失敗しました。' + err.code;
         }
       }
 
