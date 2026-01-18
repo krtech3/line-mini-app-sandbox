@@ -117,7 +117,10 @@
 
       async function initializeApp() {
         try {
-          await liff.init({ liffId: MY_LIFF_ID });
+          await liff.init({
+            liffId: MY_LIFF_ID,
+            withLoginOnExternalBrowser: true
+          });
           if (!liff.isLoggedIn()) {
             console.log("Not logged in, Redirection to login...");
             liff.login();
