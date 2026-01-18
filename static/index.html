@@ -3,80 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LIFF Share Test</title>
-    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-</head>
-<body>
-    <h1>こんにちは、<span id="user-name">読み込み中...</span>さん</h1>
-    
-    <button id="share-button" disabled style="padding: 10px 20px; font-size: 16px;">
-        友達に共有する
-    </button>
-
-    <script>
-        const liffId = "2008909034-mEEj51NQ";
-
-        async function main() {
-            try {
-                // 1. LIFF初期化
-                await liff.init({ liffId: liffId });
-
-                // 2. ログインチェック
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                    return;
-                }
-
-                // 3. ユーザー名の表示
-                const profile = await liff.getProfile();
-                document.getElementById('user-name').innerText = profile.displayName;
-
-                // 4. 初期化が完了したのでボタンを有効化する
-                const btn = document.getElementById('share-button');
-                btn.disabled = false;
-                btn.addEventListener('click', shareAction);
-
-            } catch (err) {
-                console.error("初期化エラー:", err);
-                alert("初期化に失敗しました: " + err.message);
-            }
-        }
-
-        async function shareAction() {
-            // 5. 共有機能が使えるか最終確認
-            if (liff.isApiAvailable('shareTargetPicker')) {
-                try {
-                    const result = await liff.shareTargetPicker([
-                        {
-                            "type": "text",
-                            "text": "LIFFアプリから送信しています！"
-                        }
-                    ]);
-                    if (result) {
-                        alert("共有しました！");
-                    } else {
-                        alert("共有をキャンセルしました。");
-                    }
-                } catch (error) {
-                    alert("共有エラー: " + error.message);
-                }
-            } else {
-                alert("この環境では共有機能が利用できません。");
-            }
-        }
-
-        // 実行開始
-        main();
-    </script>
-</body>
-</html>
-
-<!-- test
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>商品管理ミニツール</title>
     <style>
         * { box-sizing: border-box; }
@@ -349,5 +275,3 @@
     </script>
 </body>
 </html>
-
--->
