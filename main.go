@@ -54,6 +54,7 @@ func main() {
 	r := gin.Default()
 
 	r.StaticFS("/static", http.Dir("static"))
+	r.StaticFile("/", "static/index.html")
 
 	r.GET("/products", func(c *gin.Context) {
 		userID := c.Query("userId")
