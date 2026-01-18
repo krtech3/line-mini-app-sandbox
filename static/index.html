@@ -235,7 +235,7 @@
                   "layout": "horizontal",
                   "contents": [
                       { "type": "text", "text": name, "flex":4, "size": "sm"},
-                      { "type": "text", "text": `¥${priceNum.toLocaleString()}`, "flex": 2, "align": "end", "size": "sm" }
+                      { "type": "text", "text": `¥${price.toLocaleString()}`, "flex": 2, "align": "end", "size": "sm" }
                   ]
               });
           });
@@ -243,7 +243,7 @@
       }
 
       async function sendToCurrentChat() {
-          if (!liff.isClient()) {
+          if (!liff.isInClient()) {
               alert("LINEアプリ内で開いてください");
               return;
           }
