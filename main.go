@@ -101,13 +101,12 @@ func main() {
 	})
 
 	// --- /ask-recipe エンドポイント ---
-	/**
-		r.POST("/ask-recipe", func(c *gin.Context) {
+	/*
+		r.POST("/test-ask-recipe", func(c *gin.Context) {
 			var aiRequest []AIRequest
 			if err := c.Query()
-		}
-	**/
-
+		})
+	*/
 	r.DELETE("/products/:id", func(c *gin.Context) {
 		id := c.Param("id")
 		if err := db.Delete(&Product{}, id).Error; err != nil {
