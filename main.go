@@ -20,6 +20,10 @@ type Product struct {
 	UserID string `gorm:"column:user_id" json:"userId"`
 }
 
+type AIRequest struct {
+	Items []string `json:""items`
+}
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
