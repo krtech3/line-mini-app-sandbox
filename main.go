@@ -20,11 +20,13 @@ type Product struct {
 	UserID string `gorm:"column:user_id" json:"userId"`
 }
 
+// AIRequest はAIへのリクエストボディの構造体
 type AIRequest struct {
 	Items []string `json:""items`
 }
 
 func main() {
+	// ローカル環境用に.envファイルを読み込む
 	err := godotenv.Load()
 	if err != nil {
 		log.Println(".env file not found. Using system environment variables.")
@@ -35,7 +37,7 @@ func main() {
 	if appPort == "" {
 		appPort = "8000"
 	}
-
+	// --- DB接続設定 で、クラウド環境とローカル環境の両方に対応 ---
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		host := os.Getenv("DB_HOST")
@@ -47,6 +49,7 @@ func main() {
 			host, user, password, dbname, dbPort)
 	}
 
+	// --- GORMでPostgreSQLに接続 ---
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("DB接続失敗: " + err.Error())
@@ -55,11 +58,14 @@ func main() {
 	fmt.Println("✅ DB接続成功")
 	db.AutoMigrate(&Product{})
 
+	// --- Ginのルーター設定 ---
 	r := gin.Default()
 
+	// --- ルーティング設定 ---
 	r.StaticFS("/static", http.Dir("static"))
 	r.StaticFile("/", "static/index.html")
 
+	// --- APIエンドポイント設定 ---
 	r.GET("/products", func(c *gin.Context) {
 		userID := c.Query("userId")
 		var products []Product
@@ -93,6 +99,14 @@ func main() {
 		// 3. 保存したデータをレスポンスとして返す
 		c.JSON(http.StatusOK, newProduct)
 	})
+
+	// --- /ask-recipe エンドポイント ---
+	/**
+		r.POST("/ask-recipe", func(c *gin.Context) {
+			var aiRequest []AIRequest
+			if err := c.Query()
+		}
+	**/
 
 	r.DELETE("/products/:id", func(c *gin.Context) {
 		id := c.Param("id")
