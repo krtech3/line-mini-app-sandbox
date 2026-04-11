@@ -16,3 +16,8 @@ postgres_data/
 .DS_Store
 Thumbs.db
 __debug_bin*
+examples/
+tmp/
+
+.github/
+docs/

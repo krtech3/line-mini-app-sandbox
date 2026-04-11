@@ -1,0 +1,12 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/main ."
+  bin = "./tmp/main"
+  delay = 300
+  include_ext = ["go", "html", "tmpl"]
+  exclude_dir = ["tmp", "vendor", "node_modules", "postgres_data", "docs", "examples"]
+
+[log]
+  time = true
