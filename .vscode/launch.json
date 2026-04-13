@@ -4,8 +4,31 @@
   // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-    
-
-
+    {
+      "name": "Launch Package (Local)",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "PORT": "8000",
+      }
+    },
+    {
+      "name": "Attach to Go in Docker",
+      "type": "go",
+      "request": "attach",
+      "mode": "remote",
+      "host": "127.0.0.1",
+      "port": 2345,
+      "cwd": "${workspaceFolder}",
+      "substitutePath": [
+        {
+          "from": "/app",
+          "to": "${workspaceFolder}"
+        }
+      ]
+    }
   ]
 }
